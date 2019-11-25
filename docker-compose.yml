@@ -1,0 +1,7 @@
+version: '3.7'
+
+services:
+  viper:
+    build: .
+    hostname: viper 
+    container_name: viper
