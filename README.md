@@ -118,3 +118,26 @@ python viper_scraper.py instagram -d data_insta_test -q "#art" -c -n 100`
 ```
 
 Will scrape the first 100 photos and captions from the art hashtag.
+
+
+# Running with Docker compose
+
+
+With docker or dockercompose installed using the following commands to install system.
+
+Start the network
+```
+docker-compose up --build
+```
+
+Stop the network
+```
+docker-compose down
+```
+
+To start the running environment:
+
+```
+docker-compose run viper pipenv shell
+```
+
