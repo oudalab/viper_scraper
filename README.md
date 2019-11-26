@@ -135,9 +135,11 @@ Stop the network
 docker-compose down
 ```
 
-To start the running environment:
+To start the running environment start bash:
+```
+docker-compose run viper bash
+```
 
-```
-docker-compose run viper pipenv shell
-```
+Now you can run `pipenv shell` and use all the above commands.
+Inside the shell.
 

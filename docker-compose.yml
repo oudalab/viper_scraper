@@ -6,9 +6,4 @@ services:
     hostname: viper 
     container_name: viper
     volumes:
-        - type: volume
-          source: data
-          target: /usr/src/app/data
-
-volumes:
-  data:
+        - ./data:/usr/src/app/data

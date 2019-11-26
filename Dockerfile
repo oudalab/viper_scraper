@@ -26,4 +26,6 @@ ENV PYTHONUNBUFFERED=1
 
 RUN pip3 install pipenv
 
+VOLUME /usr/src/app/data
+
 #CMD ["pipenv", "shell"]
