@@ -26,4 +26,4 @@ ENV PYTHONUNBUFFERED=1
 
 RUN pip3 install pipenv
 
-CMD ["pipenv", "shell"]
+#CMD ["pipenv", "shell"]
