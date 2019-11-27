@@ -12,6 +12,9 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y python3-pip ipyth
 # Shell debug tools
 RUN apt-get install -y vim nmap iputils-ping ssh netcat htop slurm net-tools
 
+# Graphics tools for video card stuff
+RUN apt-get install -y libsm6 libxrender1 libfontconfig1
+
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
 
@@ -25,6 +28,8 @@ RUN bash utils/get_gecko.sh && bash utils/get_phantomjs.sh
 ENV PYTHONUNBUFFERED=1
 
 RUN pip3 install pipenv
+
+RUN pipenv install
 
 VOLUME /usr/src/app/data
 

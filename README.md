@@ -130,6 +130,11 @@ Start the network
 docker-compose up --build
 ```
 
+To run any of the code above, after building the container use the following line.
+```
+docker-compose run viper pipenv run python viper_scraper.py twitter -h
+```
+
 Stop the network
 ```
 docker-compose down
@@ -140,6 +145,6 @@ To start the running environment start bash:
 docker-compose run viper bash
 ```
 
-Now you can run `pipenv shell` and use all the above commands.
+Now you can also run `pipenv shell` and use all the above commands.
 Inside the shell.
 
