@@ -100,6 +100,7 @@ class YoloStreamListener(tweepy.StreamListener):
                 print("Exiting stream (consuming queue)...")
             # Notify consumer threads to stop processing tweets
             # TODO: Sometimes this still blocks - figure out why
+            # FIXME: If this queue size has maxed out this message will be blocked
             for t in self.threads:
                 q.put(None) # tell consumers we are done
             # Disconnect stream once they all stop
@@ -126,7 +127,7 @@ class TweetConsumerThread(threading.Thread):
         super().__init__()
         self.directory = directory
         self.limit = limit
-        self.photos_as_limit=photos_as_limit
+        self.photos_as_limit = photos_as_limit
         self.yolo = yolo
         if yolo is not None:
             self.net = cv2.dnn.readNetFromDarknet(self.yolo.config_path,self.yolo.weights_path)
@@ -136,6 +137,7 @@ class TweetConsumerThread(threading.Thread):
         while True:
             tweet = q.get() # blocks until queue has an item in it
             if tweet is None: # Producer has indicated we are done
+                print("Producer has inditated that this thread is complete")
                 break
             # TODO: Test this out and see what is done. Consider artificially introducing error
             #       See if we can signal main thread to reset stream? Idk hmm
@@ -258,9 +260,9 @@ class TweetConsumerThread(threading.Thread):
         ln = self.net.getLayerNames()
         ln = [ln[i[0] -1] for i in self.net.getUnconnectedOutLayers()]
 
-        blob = cv2.dnn.blobFromImage(image, 1/ 255.0, (416, 416), swapRB=True, crop=False)
+        blob = cv2.dnn.blobFromImage(image, 1/255.0, (416, 416), swapRB=True, crop=False)
         self.net.setInput(blob)
-        layerOutputs=self.net.forward(ln)
+        layerOutputs = self.net.forward(ln)
 
         bounding_boxes = []
         confidences = []
@@ -282,7 +284,10 @@ class TweetConsumerThread(threading.Thread):
                     labels.append(label)
             
         # non-maxima suppression
-        idxs = cv2.dnn.NMSBoxes(bounding_boxes, confidences, self.yolo.confidence, self.yolo.threshold)
+        idxs = cv2.dnn.NMSBoxes(bounding_boxes,
+                                confidences,
+                                self.yolo.confidence,
+                                self.yolo.threshold)
 
         # draw the bounding boxes for the marked up version of the image
         if len(idxs) > 0:
@@ -357,7 +362,10 @@ def stream_scrape(dir_prefix,tracking,limit,yolo,photos_as_limit=False):
     except OSError:
         print("Could not create data.csv")
 
-    stream_listener = YoloStreamListener(directory=twitter_dir,limit=limit,yolo=yolo,photos_as_limit=photos_as_limit)
+    stream_listener = YoloStreamListener(directory=twitter_dir,
+                                         limit=limit,
+                                         yolo=yolo,
+                                         photos_as_limit=photos_as_limit)
 
     print("Starting stream...")
 
@@ -365,7 +373,7 @@ def stream_scrape(dir_prefix,tracking,limit,yolo,photos_as_limit=False):
         try:
             stream = tweepy.Stream(auth=api.auth, listener=stream_listener,
                                    tweet_mode='extended', stall_warnings=True)
-            stream.filter(track=tracking, is_async = True) # to unblock, is_async = True
+            stream.filter(track=tracking, is_async=True) # to unblock, is_async = True
             print("Stream connected")
             input("Press ENTER to exit stream at any time\n")
                 # Blocking - if ENTER is pressed, will break from loop and request stream_listener
