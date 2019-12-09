@@ -13,13 +13,15 @@ import _thread
 
 from . import scraper as twitter_scraper
 
+
 MAX_QUEUE_SIZE = 10000
 PROGRESS_UPDATE_FREQ = 25      # Print a progress update every PROGRESS_UPDATE_FREQ tweets/images
 
+
 class Yolo:
-    def __init__(self,names_path,weights_path,config_path,confidence,threshold):
-        self.LABELS = open(names_path).read().strip().split("\n")
-        self.COLORS = np.random.randint(0,255,size=(len(self.LABELS),3),dtype="uint8")
+    def __init__(self, names_path, weights_path, config_path, confidence, threshold):
+        self.LABELS = open(names_path).read().strip().split('\n')
+        self.COLORS = np.random.randint(0, 255, size=(len(self.LABELS),3), dtype='uint8')
         self.confidence = confidence
         self.threshold = threshold
         self.config_path = config_path
@@ -44,15 +46,17 @@ class AtomicCounter:
         with self._lock:
             return self.value
 
+
 cnt = AtomicCounter()                   # Count number of tweets or images downloaded
 q = queue.Queue(maxsize=MAX_QUEUE_SIZE) # tweet Queue
 csv_lock = threading.Lock()             # Lock for data.csv
+
 
 class YoloStreamListener(tweepy.StreamListener):
     """
     Listen for data
     """
-    def __init__(self,directory,yolo=None,api=None,limit=1000,photos_as_limit=False):
+    def __init__(self, directory, yolo=None, api=None, limit=1000, photos_as_limit=False):
         '''
         Directory       - Directory to save data to
         yolo            - yolo config
@@ -72,18 +76,20 @@ class YoloStreamListener(tweepy.StreamListener):
         self.yolo = yolo
 
         # Threads to process tweets from queue
-        num_worker_threads = 8
+        num_worker_threads = os.cpu_count() or 1 # Return 1 if the cpu count cannot be determined
         self.threads = []
         for i in range(num_worker_threads):
-            t = TweetConsumerThread(directory,limit,self.yolo,self.photos_as_limit)
+            t = TweetConsumerThread(directory, limit, self.yolo, self.photos_as_limit)
             t.daemon = True
             t.start()
             self.threads.append(t)
 
         # TODO: A thread for writing to data.csv from consumers' outputs - need to be careful on closing
 
+
     def request_stop(self):
         self.stop_flag = True
+
 
     # Producer - from twitter stream
     def on_status(self, status):
@@ -107,11 +113,13 @@ class YoloStreamListener(tweepy.StreamListener):
         if not q.full():
             q.put(status)
 
+
     def on_error(self, status_code):
         if status_code == 420:
             #returning False in on_data disconnects the stream
             return False
         return False
+
 
 class TweetConsumerThread(threading.Thread):
     def __init__(self,directory,limit,yolo=None,photos_as_limit=False):
@@ -122,6 +130,7 @@ class TweetConsumerThread(threading.Thread):
         self.yolo = yolo
         if yolo is not None:
             self.net = cv2.dnn.readNetFromDarknet(self.yolo.config_path,self.yolo.weights_path)
+
 
     def run(self):
         while True:
@@ -136,6 +145,7 @@ class TweetConsumerThread(threading.Thread):
                 print("ERROR IN THREAD")
                 print(e)
             q.task_done()
+
 
     def process_tweet(self, status):
         """
@@ -231,6 +241,7 @@ class TweetConsumerThread(threading.Thread):
             print("On tweet " +str(self.cnt))
             return False 
 
+
     def run_yolo(self, filename, file_id):
         '''
         Runs image specified by filename through YOLO
@@ -307,6 +318,7 @@ class TweetConsumerThread(threading.Thread):
         csv_to_marked_image_file_path = os.path.join("data/images/",file_id + "marked.jpg")
 
         return csv_to_json_file_path, csv_to_marked_image_file_path
+
 
 def stream_scrape(dir_prefix,tracking,limit,yolo,photos_as_limit=False):
     api = get_api()
