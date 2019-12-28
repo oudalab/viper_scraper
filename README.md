@@ -148,3 +148,25 @@ docker-compose run viper bash
 Now you can also run `pipenv shell` and use all the above commands.
 Inside the shell.
 
+# Remove containers and re-run 
+Stop the network
+```
+docker-compose down
+```
+
+To remove associated containers
+```
+docker ps -a | awk '{ print $1,$2 }' | grep viper_scraper_viper | awk '{print $1 }' | xargs -I {} docker rm {}
+```
+
+Print all of the images
+```
+docker images
+```
+
+Remove specific image
+```
+docker image rm 502285389a42
+```
+
+Now that this is done you can re-compose docker and run the program.
